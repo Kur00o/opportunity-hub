@@ -26,7 +26,7 @@ interface SearchResult {
 export async function fetchOpportunitiesFromAPI(): Promise<Opportunity[]> {
   const opportunities: Opportunity[] = [];
   
-  // If API keys are not configured, return empty array (will fallback to mock data)
+  // Validate API keys
   if (!GEMINI_API_KEY || !GOOGLE_SEARCH_API_KEY || !GOOGLE_SEARCH_ENGINE_ID) {
     console.warn('API keys not configured. Using mock data.');
     console.warn('Missing keys:', {
@@ -37,19 +37,27 @@ export async function fetchOpportunitiesFromAPI(): Promise<Opportunity[]> {
     return [];
   }
 
+  // Validate Search Engine ID format (should not look like an API key)
+  if (GOOGLE_SEARCH_ENGINE_ID.startsWith('AIzaSy')) {
+    console.error('ERROR: Search Engine ID appears to be an API key, not a Search Engine ID!');
+    console.error('Search Engine ID should be a short string like "017576662512468239146:omuauf_lfve"');
+    console.error('Get your Search Engine ID from: https://programmablesearchengine.google.com/');
+    return [];
+  }
+
   console.log('Starting API fetch for opportunities...');
   
   try {
-    // Search queries for different opportunity types
+    // Search queries for different opportunity types - updated to 2026
     const searchQueries = [
-      'hackathons 2025 India students',
-      'internships 2025 India tech',
-      'Google Summer of Code 2025',
-      'open source programs 2025',
-      'fellowships 2025 India',
-      'MLH hackathons 2025',
-      'tech internships India 2025',
-      'coding competitions 2025',
+      'hackathons 2026 India students',
+      'internships 2026 India tech',
+      'Google Summer of Code 2026',
+      'open source programs 2026',
+      'fellowships 2026 India',
+      'MLH hackathons 2026',
+      'tech internships India 2026',
+      'coding competitions 2026',
     ];
 
     // Fetch search results for each query
