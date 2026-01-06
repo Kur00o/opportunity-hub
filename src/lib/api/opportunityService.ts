@@ -1,5 +1,4 @@
 import { Opportunity } from '@/types/opportunity';
-import { mockOpportunities } from '@/lib/mock-data';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GOOGLE_SEARCH_API_KEY = import.meta.env.VITE_GOOGLE_SEARCH_API_KEY;
@@ -269,25 +268,14 @@ If the information is insufficient or not a tech opportunity, return null.`;
  */
 export async function getAllOpportunities(): Promise<Opportunity[]> {
   try {
-    // Try to fetch from API first
+    // Fetch only from API; no mock fallback here
     const apiOpportunities = await fetchOpportunitiesFromAPI();
-    
-    // Combine with mock data and deduplicate by name
-    const allOpportunities = [...mockOpportunities];
-    const existingNames = new Set(mockOpportunities.map(opp => opp.name.toLowerCase()));
-    
-    apiOpportunities.forEach(opp => {
-      if (!existingNames.has(opp.name.toLowerCase())) {
-        allOpportunities.push(opp);
-        existingNames.add(opp.name.toLowerCase());
-      }
-    });
-
-    return allOpportunities;
+    console.log('getAllOpportunities: returning', apiOpportunities.length, 'API opportunities');
+    return apiOpportunities;
   } catch (error) {
     console.error('Error getting opportunities:', error);
-    // Fallback to mock data only
-    return mockOpportunities;
+    // On error, return empty list (UI will show no results)
+    return [];
   }
 }
 
