@@ -171,100 +171,120 @@ Snippet: ${result.snippet}
 
 If the information is insufficient or not a tech opportunity, return null.`;
 
-    // Try the latest Gemini API endpoint
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+    // Try different Gemini API models (gemini-pro is deprecated, try newer models)
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    let lastError = null;
     
-    console.log('Calling Gemini API...');
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }]
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Gemini API error (${response.status}):`, errorText);
-      throw new Error(`Gemini API error: ${response.statusText}`);
+    for (const model of models) {
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        console.log(`Calling Gemini API with model: ${model}...`);
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }]
+          }),
+        });
+        
+        if (response.ok) {
+          // Success - use this response
+          const data = await response.json();
+          
+          if (data.error) {
+            console.error(`Gemini API (${model}) returned error:`, data.error);
+            lastError = new Error(`Gemini API error: ${data.error.message}`);
+            continue; // Try next model
+          }
+          
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          if (!text) {
+            console.warn('No text returned from Gemini for:', result.title);
+            return null;
+          }
+          
+          // Extract JSON from response (handle markdown code blocks)
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) {
+            console.warn('No JSON found in Gemini response for:', result.title);
+            return null;
+          }
+          
+          const opportunityData = JSON.parse(jsonMatch[0]);
+          
+          // Validate and transform to Opportunity format
+          if (!opportunityData.name || !opportunityData.officialLink) {
+            return null;
+          }
+          
+          return {
+            id: `api-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: opportunityData.name,
+            organizer: opportunityData.organizer || 'Unknown',
+            description: opportunityData.description || '',
+            category: opportunityData.category || 'hackathon',
+            mode: opportunityData.mode || 'online',
+            level: opportunityData.level || 'intermediate',
+            applicationStart: opportunityData.applicationStart 
+              ? new Date(opportunityData.applicationStart) 
+              : new Date(),
+            applicationEnd: opportunityData.applicationEnd 
+              ? new Date(opportunityData.applicationEnd) 
+              : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            eventStart: opportunityData.eventStart 
+              ? new Date(opportunityData.eventStart) 
+              : new Date(),
+            eventEnd: opportunityData.eventEnd 
+              ? new Date(opportunityData.eventEnd) 
+              : new Date(),
+            location: opportunityData.location || undefined,
+            country: opportunityData.country || 'Worldwide',
+            isIndiaFocused: opportunityData.isIndiaFocused || false,
+            eligibility: Array.isArray(opportunityData.eligibility) 
+              ? opportunityData.eligibility 
+              : [],
+            techStack: Array.isArray(opportunityData.techStack) 
+              ? opportunityData.techStack 
+              : [],
+            domains: Array.isArray(opportunityData.domains) 
+              ? opportunityData.domains 
+              : [],
+            stipend: opportunityData.stipend || undefined,
+            prizes: opportunityData.prizes || undefined,
+            officialLink: opportunityData.officialLink,
+            applicationLink: opportunityData.applicationLink || undefined,
+            featured: false,
+            verified: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+        } else {
+          const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
+          console.warn(`Gemini API (${model}) error (${response.status}):`, errorData.error?.message);
+          lastError = new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+          // Continue to next model
+        }
+      } catch (err: any) {
+        console.warn(`Error with Gemini model ${model}:`, err.message);
+        lastError = err;
+        // Continue to next model
+      }
     }
-
-    const data = await response.json();
     
-    if (data.error) {
-      console.error('Gemini API returned error:', data.error);
-      return null;
+    // If all models failed, throw the last error
+    if (lastError) {
+      throw lastError;
     }
     
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    
-    if (!text) {
-      console.warn('No text returned from Gemini for:', result.title);
-      return null;
-    }
-    
-    // Extract JSON from response (handle markdown code blocks)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.warn('No JSON found in Gemini response for:', result.title);
-      return null;
-    }
-
-    const opportunityData = JSON.parse(jsonMatch[0]);
-    
-    // Validate and transform to Opportunity format
-    if (!opportunityData.name || !opportunityData.officialLink) {
-      return null;
-    }
-
-    return {
-      id: `api-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: opportunityData.name,
-      organizer: opportunityData.organizer || 'Unknown',
-      description: opportunityData.description || '',
-      category: opportunityData.category || 'hackathon',
-      mode: opportunityData.mode || 'online',
-      level: opportunityData.level || 'intermediate',
-      applicationStart: opportunityData.applicationStart 
-        ? new Date(opportunityData.applicationStart) 
-        : new Date(),
-      applicationEnd: opportunityData.applicationEnd 
-        ? new Date(opportunityData.applicationEnd) 
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      eventStart: opportunityData.eventStart 
-        ? new Date(opportunityData.eventStart) 
-        : new Date(),
-      eventEnd: opportunityData.eventEnd 
-        ? new Date(opportunityData.eventEnd) 
-        : new Date(),
-      location: opportunityData.location || undefined,
-      country: opportunityData.country || 'Worldwide',
-      isIndiaFocused: opportunityData.isIndiaFocused || false,
-      eligibility: Array.isArray(opportunityData.eligibility) 
-        ? opportunityData.eligibility 
-        : [],
-      techStack: Array.isArray(opportunityData.techStack) 
-        ? opportunityData.techStack 
-        : [],
-      domains: Array.isArray(opportunityData.domains) 
-        ? opportunityData.domains 
-        : [],
-      stipend: opportunityData.stipend || undefined,
-      prizes: opportunityData.prizes || undefined,
-      officialLink: opportunityData.officialLink,
-      applicationLink: opportunityData.applicationLink || undefined,
-      featured: false,
-      verified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    return null;
   } catch (error) {
     console.error('Error extracting opportunity data:', error);
     return null;
