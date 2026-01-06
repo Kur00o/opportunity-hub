@@ -171,14 +171,21 @@ Snippet: ${result.snippet}
 
 If the information is insufficient or not a tech opportunity, return null.`;
 
-    // Try different Gemini API models (gemini-pro is deprecated, try newer models)
-    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+    // Try supported Gemini API models (avoid deprecated gemini-pro)
+    const modelCombos = [
+      { version: 'v1beta', model: 'gemini-1.5-flash' },
+      { version: 'v1beta', model: 'gemini-1.5-pro' },
+      { version: 'v1',     model: 'gemini-1.5-flash' },
+      { version: 'v1',     model: 'gemini-1.5-pro' },
+      { version: 'v1beta', model: 'gemini-1.0-pro' },
+      { version: 'v1',     model: 'gemini-1.0-pro' },
+    ];
     let lastError = null;
     
-    for (const model of models) {
+    for (const combo of modelCombos) {
       try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-        console.log(`Calling Gemini API with model: ${model}...`);
+        const apiUrl = `https://generativelanguage.googleapis.com/${combo.version}/models/${combo.model}:generateContent?key=${GEMINI_API_KEY}`;
+        console.log(`Calling Gemini API with model: ${combo.model} (${combo.version})...`);
         
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -199,7 +206,7 @@ If the information is insufficient or not a tech opportunity, return null.`;
           const data = await response.json();
           
           if (data.error) {
-            console.error(`Gemini API (${model}) returned error:`, data.error);
+            console.error(`Gemini API (${combo.model} ${combo.version}) returned error:`, data.error);
             lastError = new Error(`Gemini API error: ${data.error.message}`);
             continue; // Try next model
           }
