@@ -41,6 +41,10 @@ export default function Opportunities() {
   // Fetch opportunities using the hook
   const { opportunities: allOpportunities, isLoading } = useOpportunities();
   
+  // Debug: Log opportunities count
+  console.log('Opportunities page: Received', allOpportunities?.length || 0, 'opportunities');
+  console.log('Opportunities page: isLoading =', isLoading);
+  
   // Initialize filters from URL params
   const [filters, setFilters] = useState<OpportunityFilters>(() => {
     const category = searchParams.get('category') as OpportunityCategory | null;
@@ -53,21 +57,26 @@ export default function Opportunities() {
 
   const filteredOpportunities = useMemo(() => {
     let result = [...allOpportunities];
+    console.log('Filtering: Starting with', result.length, 'opportunities');
 
     // Search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
+      const beforeSearch = result.length;
       result = result.filter(opp => 
         opp.name.toLowerCase().includes(query) ||
         opp.organizer.toLowerCase().includes(query) ||
         opp.description.toLowerCase().includes(query) ||
         opp.domains.some(d => d.toLowerCase().includes(query))
       );
+      console.log('Filtering: After search query "' + searchQuery + '":', beforeSearch, '->', result.length);
     }
 
     // Status filter
     if (activeStatus !== 'all') {
+      const beforeStatus = result.length;
       result = result.filter(opp => getOpportunityStatus(opp) === activeStatus);
+      console.log('Filtering: After status filter "' + activeStatus + '":', beforeStatus, '->', result.length);
     }
 
     // Category
@@ -115,6 +124,7 @@ export default function Opportunities() {
         break;
     }
 
+    console.log('Filtering: Final result:', result.length, 'opportunities');
     return result;
   }, [allOpportunities, filters, searchQuery, sortBy, activeStatus]);
 

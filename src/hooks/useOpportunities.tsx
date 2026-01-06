@@ -1,16 +1,17 @@
-import { mockOpportunities, getActiveOpportunities } from '@/lib/mock-data';
+import { mockOpportunities } from '@/lib/mock-data';
 
 /**
- * Minimal hook that always returns opportunities from local data.
- * This guarantees results in production even if external APIs fail.
- * (You can re-enable the React Query + API integration later if needed.)
+ * Hook that returns opportunities from local data.
+ * Always returns all opportunities - filtering happens in the UI component.
  */
 export function useOpportunities() {
-  const base = mockOpportunities;
-  const active = getActiveOpportunities(base);
-
+  // Debug: Log opportunity count
+  console.log('useOpportunities: Returning', mockOpportunities.length, 'opportunities');
+  
+  // Return all opportunities - let the UI handle filtering by status
+  // This ensures we always have data to display
   return {
-    opportunities: active.length > 0 ? active : base,
+    opportunities: mockOpportunities,
     isLoading: false,
     error: null,
     refetch: () => {},
