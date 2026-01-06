@@ -100,93 +100,85 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
       </CardHeader>
 
       <CardContent className="pt-0 space-y-3">
-        {/* Category & Level */}
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="text-xs">
-            {CATEGORY_LABELS[opportunity.category]}
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            {MODE_LABELS[opportunity.mode]}
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            {LEVEL_LABELS[opportunity.level]}
-          </Badge>
-        </div>
-
         {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
           {opportunity.description}
         </p>
 
-        {/* Key Info */}
+        {/* Key Info - Compact */}
         <div className="space-y-1.5 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4 shrink-0" />
-            <span className="truncate">
-              Deadline: {format(opportunity.applicationEnd, 'MMM d, yyyy')}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-xs">
+                {format(opportunity.applicationEnd, 'MMM d')}
+              </span>
+            </div>
             {isUrgent && (
-              <Badge variant="destructive" className="text-xs ml-auto">
-                {daysUntilDeadline}d left
+              <Badge variant="destructive" className="text-xs px-1.5 py-0">
+                {daysUntilDeadline}d
               </Badge>
             )}
           </div>
 
           <div className="flex items-center gap-2 text-muted-foreground">
             {opportunity.mode === 'online' ? (
-              <Globe className="h-4 w-4 shrink-0" />
+              <Globe className="h-3.5 w-3.5 shrink-0" />
             ) : (
-              <MapPin className="h-4 w-4 shrink-0" />
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
             )}
-            <span className="truncate">
+            <span className="text-xs truncate">
               {opportunity.location || opportunity.country}
               {opportunity.isIndiaFocused && ' 🇮🇳'}
             </span>
           </div>
 
           {(opportunity.stipend || opportunity.prizes) && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Award className="h-4 w-4 shrink-0" />
-              <span className="truncate text-success font-medium">
+            <div className="flex items-center gap-2">
+              <Award className="h-3.5 w-3.5 shrink-0 text-success" />
+              <span className="text-xs text-success font-medium truncate">
                 {opportunity.stipend || opportunity.prizes}
               </span>
             </div>
           )}
         </div>
 
-        {/* Domains */}
-        <div className="flex flex-wrap gap-1.5">
-          {opportunity.domains.slice(0, 3).map((domain) => (
+        {/* Category & Domains - Compact */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="outline" className="text-xs px-1.5 py-0">
+            {CATEGORY_LABELS[opportunity.category]}
+          </Badge>
+          {opportunity.domains.slice(0, 2).map((domain) => (
             <span
               key={domain}
-              className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
+              className="text-xs px-1.5 py-0.5 rounded-full bg-secondary/50 text-secondary-foreground"
             >
               {domain}
             </span>
           ))}
-          {opportunity.domains.length > 3 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-              +{opportunity.domains.length - 3}
+          {opportunity.domains.length > 2 && (
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-secondary/50 text-secondary-foreground">
+              +{opportunity.domains.length - 2}
             </span>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2 pt-1">
           <Link to={`/opportunity/${opportunity.id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full">
+            <Button variant="default" size="sm" className="w-full text-xs">
               View Details
             </Button>
           </Link>
           <Button
-            variant={bookmarked ? 'default' : 'ghost'}
+            variant={bookmarked ? 'default' : 'outline'}
             size="icon"
-            className={cn('shrink-0', bookmarked && 'bg-primary text-primary-foreground')}
+            className={cn('shrink-0 h-8 w-8', bookmarked && 'bg-primary text-primary-foreground')}
             aria-pressed={bookmarked}
             aria-label={bookmarked ? 'Remove bookmark' : 'Save opportunity'}
             onClick={handleBookmarkClick}
           >
-            <Bookmark className={cn('h-4 w-4', bookmarked && 'fill-current')} />
+            <Bookmark className={cn('h-3.5 w-3.5', bookmarked && 'fill-current')} />
           </Button>
         </div>
       </CardContent>

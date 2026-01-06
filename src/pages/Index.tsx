@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { OpportunityCard } from '@/components/opportunities/OpportunityCard';
-import { mockOpportunities } from '@/lib/mock-data';
+import { useOpportunities } from '@/hooks/useOpportunities';
 import { 
   ArrowRight, 
   Search, 
@@ -80,7 +80,8 @@ const features = [
 ];
 
 export default function Index() {
-  const featuredOpportunities = mockOpportunities.filter(opp => opp.featured).slice(0, 4);
+  const { opportunities } = useOpportunities();
+  const featuredOpportunities = opportunities.filter(opp => opp.featured).slice(0, 4);
 
   return (
     <div className="min-h-screen flex flex-col">

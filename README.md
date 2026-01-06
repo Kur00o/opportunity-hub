@@ -1,73 +1,127 @@
-# Welcome to your Lovable project
+# Opportunity Compass
 
-## Project info
+A modern, aesthetic, and fully responsive web application that acts as a centralized discovery platform for hackathons, global programs (like GSoC), internships, fellowships, and tech opportunities, with a primary focus on India but inclusive of worldwide events.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **80+ Opportunities**: Comprehensive database of hackathons, internships, open-source programs, and fellowships
+- **Real-time Data Fetching**: Integration with Google Search API and Gemini AI for live opportunity discovery
+- **Advanced Filtering**: Filter by category, mode, level, domain, location, and more
+- **Smart Search**: Type-ahead search suggestions with intelligent matching
+- **India-First Toggle**: Quick filter for India-focused opportunities
+- **Bookmarking**: Save opportunities for later viewing
+- **Calendar Integration**: Visual calendar view for deadlines and event dates
+- **Dark/Light Mode**: Beautiful UI with theme switching
+- **Mobile-First**: Fully responsive design
 
-There are several ways of editing your application.
+## Setup
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- Node.js 18+ and npm/yarn/pnpm
+- API keys for Google Gemini and Google Custom Search (optional, app works with mock data)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd opportunity-compass-main
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. Install dependencies:
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. Set up environment variables (optional for API features):
+```bash
+cp .env.example .env
+```
 
-Follow these steps:
+Edit `.env` and add your API keys:
+```env
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+VITE_GOOGLE_SEARCH_API_KEY=your_google_search_api_key_here
+VITE_GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id_here
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Getting API Keys
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+**Google Gemini API Key:**
+1. Visit https://makersuite.google.com/app/apikey
+2. Create a new API key
+3. Copy and paste into `.env`
 
-# Step 3: Install the necessary dependencies.
-npm i
+**Google Custom Search API:**
+1. Visit https://developers.google.com/custom-search/v1/overview
+2. Create a project and enable Custom Search API
+3. Create credentials (API key)
+4. Create a Custom Search Engine at https://programmablesearchengine.google.com/
+5. Copy API key and Search Engine ID to `.env`
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+**Note:** The app works perfectly without API keys using the comprehensive mock data (80+ opportunities). API keys enable real-time opportunity discovery.
+
+### Development
+
+Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Build
 
-**Use GitHub Codespaces**
+Build for production:
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/
+│   ├── layout/          # Header, Footer
+│   ├── opportunities/    # OpportunityCard, FilterSidebar
+│   └── ui/              # shadcn/ui components
+├── hooks/
+│   ├── useBookmarks.tsx      # Bookmark management
+│   └── useOpportunities.tsx  # Data fetching hook
+├── lib/
+│   ├── api/
+│   │   └── opportunityService.ts  # API integration
+│   ├── mock-data.ts     # 80+ opportunities
+│   └── utils.ts         # Utility functions
+├── pages/
+│   ├── Index.tsx         # Home page
+│   ├── Opportunities.tsx # Browse page
+│   ├── OpportunityDetail.tsx
+│   ├── CalendarPage.tsx
+│   ├── SubmitOpportunity.tsx
+│   └── About.tsx
+└── types/
+    └── opportunity.ts   # TypeScript types
+```
 
-This project is built with:
+## Technologies
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - Component library
+- **React Query** - Data fetching & caching
+- **React Router** - Routing
+- **date-fns** - Date utilities
+- **Google Gemini API** - AI-powered data extraction
+- **Google Custom Search API** - Opportunity discovery
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT License

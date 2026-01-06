@@ -29,20 +29,22 @@ import {
   DOMAINS
 } from '@/types/opportunity';
 import { cn } from '@/lib/utils';
-import { mockOpportunities } from '@/lib/mock-data';
+import { Opportunity } from '@/types/opportunity';
 
 interface FilterSidebarProps {
   filters: OpportunityFilters;
   onFiltersChange: (filters: OpportunityFilters) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  opportunities?: Opportunity[];
 }
 
 export function FilterSidebar({ 
   filters, 
   onFiltersChange, 
   searchQuery, 
-  onSearchChange 
+  onSearchChange,
+  opportunities = []
 }: FilterSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -96,15 +98,15 @@ export function FilterSidebar({
   const searchSuggestions = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
     const q = searchQuery.toLowerCase();
-    const names = mockOpportunities
+    const names = opportunities
       .map((o) => o.name)
       .filter((name) => name.toLowerCase().includes(q));
-    const organizers = mockOpportunities
+    const organizers = opportunities
       .map((o) => o.organizer)
       .filter((org) => org.toLowerCase().includes(q));
     const domains = DOMAINS.filter((d) => d.toLowerCase().includes(q));
     return Array.from(new Set([...names, ...organizers, ...domains])).slice(0, 6);
-  }, [searchQuery]);
+  }, [searchQuery, opportunities]);
 
   const FilterContent = () => (
     <div className="space-y-6">

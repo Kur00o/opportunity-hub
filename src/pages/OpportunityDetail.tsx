@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { mockOpportunities, getOpportunityStatus, getDaysUntilDeadline } from '@/lib/mock-data';
+import { getOpportunityStatus, getDaysUntilDeadline } from '@/lib/mock-data';
+import { useOpportunities } from '@/hooks/useOpportunities';
 import { CATEGORY_LABELS, MODE_LABELS, LEVEL_LABELS } from '@/types/opportunity';
 import { format } from 'date-fns';
 import {
@@ -44,7 +45,8 @@ const categoryColors = {
 
 export default function OpportunityDetail() {
   const { id } = useParams();
-  const opportunity = mockOpportunities.find((opp) => opp.id === id);
+  const { opportunities } = useOpportunities();
+  const opportunity = opportunities.find((opp) => opp.id === id);
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const { toast } = useToast();
 
@@ -54,7 +56,7 @@ export default function OpportunityDetail() {
         <Header />
         <main className="flex-1 container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Opportunity not found</h1>
-          <Link to="/opportunities">
+          <Link to="/">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to opportunities
@@ -102,7 +104,7 @@ export default function OpportunityDetail() {
         <section className={cn('py-12 md:py-16', categoryColors[opportunity.category])}>
           <div className="container mx-auto px-4">
             <Link
-              to="/opportunities"
+              to="/"
               className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

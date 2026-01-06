@@ -1,29 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkMode);
-  }, []);
-
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle('dark');
-    setIsDark(!isDark);
-  };
 
   return (
     <header
@@ -46,7 +34,7 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <Link
-              to="/opportunities"
+              to="/"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Browse
@@ -73,9 +61,6 @@ export function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
             <Link to="/auth">
               <Button variant="ghost" size="sm">
                 Sign In
@@ -88,9 +73,6 @@ export function Header() {
 
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -106,7 +88,7 @@ export function Header() {
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <nav className="flex flex-col gap-3">
               <Link
-                to="/opportunities"
+                to="/"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >

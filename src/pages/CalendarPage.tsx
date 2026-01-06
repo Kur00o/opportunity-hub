@@ -3,16 +3,17 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { useState } from 'react';
-import { mockOpportunities } from '@/lib/mock-data';
 import { format, isSameDay } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import { useOpportunities } from '@/hooks/useOpportunities';
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { opportunities } = useOpportunities();
 
   const opportunitiesOnDate = selectedDate
-    ? mockOpportunities.filter((opp) =>
+    ? opportunities.filter((opp) =>
         isSameDay(opp.applicationEnd, selectedDate) ||
         isSameDay(opp.eventStart, selectedDate) ||
         isSameDay(opp.eventEnd, selectedDate),

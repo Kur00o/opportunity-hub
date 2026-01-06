@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockOpportunities, getOpportunityStatus } from '@/lib/mock-data';
+import { getOpportunityStatus } from '@/lib/mock-data';
+import { useOpportunities } from '@/hooks/useOpportunities';
 import { 
   OpportunityFilters, 
   OpportunityCategory, 
@@ -38,6 +39,9 @@ export default function Opportunities() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeStatus, setActiveStatus] = useState<OpportunityStatus | 'all'>('all');
   
+  // Fetch opportunities using the hook
+  const { opportunities: allOpportunities, isLoading } = useOpportunities();
+  
   // Initialize filters from URL params
   const [filters, setFilters] = useState<OpportunityFilters>(() => {
     const category = searchParams.get('category') as OpportunityCategory | null;
@@ -49,7 +53,7 @@ export default function Opportunities() {
   });
 
   const filteredOpportunities = useMemo(() => {
-    let result = [...mockOpportunities];
+    let result = [...allOpportunities];
 
     // Search
     if (searchQuery) {
@@ -113,7 +117,7 @@ export default function Opportunities() {
     }
 
     return result;
-  }, [filters, searchQuery, sortBy, activeStatus]);
+  }, [allOpportunities, filters, searchQuery, sortBy, activeStatus]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -171,6 +175,7 @@ export default function Opportunities() {
             onFiltersChange={setFilters}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            opportunities={allOpportunities}
           />
 
           {/* Main Content */}
@@ -185,6 +190,7 @@ export default function Opportunities() {
                     onFiltersChange={setFilters}
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
+                    opportunities={allOpportunities}
                   />
                 </div>
                 
@@ -229,7 +235,11 @@ export default function Opportunities() {
             </div>
 
             {/* Opportunities Grid */}
-            {filteredOpportunities.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-16">
+                <div className="text-muted-foreground mb-4">Loading opportunities...</div>
+              </div>
+            ) : filteredOpportunities.length > 0 ? (
               <div className={cn(
                 viewMode === 'grid' 
                   ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
