@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { OpportunityCard } from '@/components/opportunities/OpportunityCard';
 import { FilterSidebar } from '@/components/opportunities/FilterSidebar';
 import { Button } from '@/components/ui/button';
@@ -275,8 +274,6 @@ export default function Opportunities() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

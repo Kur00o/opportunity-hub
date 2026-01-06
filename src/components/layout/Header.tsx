@@ -59,17 +59,6 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link to="/auth">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button size="sm">Get Started</Button>
-            </Link>
-          </div>
 
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
@@ -115,18 +104,6 @@ export function Header() {
               >
                 Open Source
               </Link>
-              <div className="flex gap-2 pt-3 border-t border-border">
-                <Link to="/auth" className="flex-1">
-                  <Button variant="outline" className="w-full" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth?mode=signup" className="flex-1">
-                  <Button className="w-full" size="sm">
-                    Get Started
-                  </Button>
-                </Link>
-              </div>
             </nav>
           </div>
         )}

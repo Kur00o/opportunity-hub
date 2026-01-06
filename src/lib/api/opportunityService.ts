@@ -5,6 +5,16 @@ const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GOOGLE_SEARCH_API_KEY = import.meta.env.VITE_GOOGLE_SEARCH_API_KEY;
 const GOOGLE_SEARCH_ENGINE_ID = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID;
 
+// Debug: Log API key status (without exposing actual keys)
+console.log('API Configuration:', {
+  hasGeminiKey: !!GEMINI_API_KEY,
+  hasSearchKey: !!GOOGLE_SEARCH_API_KEY,
+  hasEngineId: !!GOOGLE_SEARCH_ENGINE_ID,
+  geminiKeyLength: GEMINI_API_KEY?.length || 0,
+  searchKeyLength: GOOGLE_SEARCH_API_KEY?.length || 0,
+  engineIdLength: GOOGLE_SEARCH_ENGINE_ID?.length || 0,
+});
+
 interface SearchResult {
   title: string;
   link: string;
@@ -20,9 +30,16 @@ export async function fetchOpportunitiesFromAPI(): Promise<Opportunity[]> {
   // If API keys are not configured, return empty array (will fallback to mock data)
   if (!GEMINI_API_KEY || !GOOGLE_SEARCH_API_KEY || !GOOGLE_SEARCH_ENGINE_ID) {
     console.warn('API keys not configured. Using mock data.');
+    console.warn('Missing keys:', {
+      gemini: !GEMINI_API_KEY,
+      search: !GOOGLE_SEARCH_API_KEY,
+      engineId: !GOOGLE_SEARCH_ENGINE_ID,
+    });
     return [];
   }
 
+  console.log('Starting API fetch for opportunities...');
+  
   try {
     // Search queries for different opportunity types
     const searchQueries = [
@@ -43,14 +60,27 @@ export async function fetchOpportunitiesFromAPI(): Promise<Opportunity[]> {
     
     const searchResults = await Promise.all(searchPromises);
     const allResults = searchResults.flat();
+    
+    console.log(`Found ${allResults.length} search results`);
 
-    // Use Gemini to extract structured data from search results
-    const geminiPromises = allResults.slice(0, 30).map(result => 
+    if (allResults.length === 0) {
+      console.warn('No search results found. Check your Google Search API configuration.');
+      return [];
+    }
+
+    // Use Gemini to extract structured data from search results (limit to 10 for testing)
+    const resultsToProcess = allResults.slice(0, 10);
+    console.log(`Processing ${resultsToProcess.length} results with Gemini...`);
+    
+    const geminiPromises = resultsToProcess.map(result => 
       extractOpportunityData(result)
     );
 
     const extractedOpportunities = await Promise.all(geminiPromises);
-    opportunities.push(...extractedOpportunities.filter(opp => opp !== null) as Opportunity[]);
+    const validOpportunities = extractedOpportunities.filter(opp => opp !== null) as Opportunity[];
+    
+    console.log(`Successfully extracted ${validOpportunities.length} opportunities from API`);
+    opportunities.push(...validOpportunities);
 
     return opportunities;
   } catch (error) {
@@ -64,16 +94,28 @@ export async function fetchOpportunitiesFromAPI(): Promise<Opportunity[]> {
  */
 async function searchGoogle(query: string): Promise<SearchResult[]> {
   try {
-    const response = await fetch(
-      `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_SEARCH_API_KEY}&cx=${GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=5`
-    );
+    const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_SEARCH_API_KEY}&cx=${GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=5`;
+    console.log(`Searching Google for: "${query}"`);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Google Search API error (${response.status}):`, errorText);
       throw new Error(`Google Search API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    return (data.items || []).map((item: any) => ({
+    
+    if (data.error) {
+      console.error('Google Search API returned error:', data.error);
+      return [];
+    }
+    
+    const items = data.items || [];
+    console.log(`Found ${items.length} results for "${query}"`);
+    
+    return items.map((item: any) => ({
       title: item.title,
       link: item.link,
       snippet: item.snippet,
@@ -89,6 +131,7 @@ async function searchGoogle(query: string): Promise<SearchResult[]> {
  */
 async function extractOpportunityData(result: SearchResult): Promise<Opportunity | null> {
   try {
+    console.log(`Extracting data for: ${result.title}`);
     const prompt = `Extract structured information about this tech opportunity from the following search result. 
 Return ONLY a valid JSON object with this exact structure (no markdown, no extra text):
 {
@@ -121,33 +164,51 @@ Snippet: ${result.snippet}
 
 If the information is insufficient or not a tech opportunity, return null.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
+    // Try the latest Gemini API endpoint
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+    
+    console.log('Calling Gemini API...');
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
           }]
-        }),
-      }
-    );
+        }]
+      }),
+    });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Gemini API error (${response.status}):`, errorText);
       throw new Error(`Gemini API error: ${response.statusText}`);
     }
 
     const data = await response.json();
+    
+    if (data.error) {
+      console.error('Gemini API returned error:', data.error);
+      return null;
+    }
+    
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    if (!text) {
+      console.warn('No text returned from Gemini for:', result.title);
+      return null;
+    }
     
     // Extract JSON from response (handle markdown code blocks)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    if (!jsonMatch) {
+      console.warn('No JSON found in Gemini response for:', result.title);
+      return null;
+    }
 
     const opportunityData = JSON.parse(jsonMatch[0]);
     
