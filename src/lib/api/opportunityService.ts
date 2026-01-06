@@ -275,12 +275,12 @@ If the information is insufficient or not a tech opportunity, return null.`;
           };
         } else {
           const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-          console.warn(`Gemini API (${model}) error (${response.status}):`, errorData.error?.message);
+          console.warn(`Gemini API (${combo.model} ${combo.version}) error (${response.status}):`, errorData.error?.message);
           lastError = new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
           // Continue to next model
         }
       } catch (err: any) {
-        console.warn(`Error with Gemini model ${model}:`, err.message);
+        console.warn(`Error with Gemini model ${combo.model} (${combo.version}):`, err.message);
         lastError = err;
         // Continue to next model
       }
