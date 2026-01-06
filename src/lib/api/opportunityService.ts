@@ -171,21 +171,21 @@ Snippet: ${result.snippet}
 
 If the information is insufficient or not a tech opportunity, return null.`;
 
-    // Try supported Gemini API models (avoid deprecated gemini-pro)
+    // Try supported Gemini API models - use v1beta with correct model names
+    // Based on Google's current API, these are the available models
     const modelCombos = [
-      { version: 'v1beta', model: 'gemini-1.5-flash' },
-      { version: 'v1beta', model: 'gemini-1.5-pro' },
-      { version: 'v1',     model: 'gemini-1.5-flash' },
-      { version: 'v1',     model: 'gemini-1.5-pro' },
-      { version: 'v1beta', model: 'gemini-1.0-pro' },
-      { version: 'v1',     model: 'gemini-1.0-pro' },
+      { model: 'gemini-1.5-flash-latest' },  // Latest flash model
+      { model: 'gemini-1.5-pro-latest' },    // Latest pro model
+      { model: 'gemini-1.5-flash' },        // Specific version
+      { model: 'gemini-1.5-pro' },          // Specific version
+      { model: 'gemini-pro' },               // Legacy (might still work)
     ];
-    let lastError = null;
     
     for (const combo of modelCombos) {
       try {
-        const apiUrl = `https://generativelanguage.googleapis.com/${combo.version}/models/${combo.model}:generateContent?key=${GEMINI_API_KEY}`;
-        console.log(`Calling Gemini API with model: ${combo.model} (${combo.version})...`);
+        // Use v1beta endpoint - this is the standard for generateContent
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${combo.model}:generateContent?key=${GEMINI_API_KEY}`;
+        console.log(`Calling Gemini API with model: ${combo.model}...`);
         
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -206,9 +206,8 @@ If the information is insufficient or not a tech opportunity, return null.`;
           const data = await response.json();
           
           if (data.error) {
-            console.error(`Gemini API (${combo.model} ${combo.version}) returned error:`, data.error);
-            lastError = new Error(`Gemini API error: ${data.error.message}`);
-            continue; // Try next model
+            console.warn(`Gemini API (${combo.model}) returned error:`, data.error.message);
+            continue; // Try next model silently
           }
           
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -275,22 +274,21 @@ If the information is insufficient or not a tech opportunity, return null.`;
           };
         } else {
           const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
-          console.warn(`Gemini API (${combo.model} ${combo.version}) error (${response.status}):`, errorData.error?.message);
-          lastError = new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
-          // Continue to next model
+          if (response.status === 404) {
+            console.warn(`Gemini model ${combo.model} not available (404), trying next...`);
+          } else {
+            console.warn(`Gemini API (${combo.model}) error (${response.status}):`, errorData.error?.message);
+          }
+          // Continue to next model silently
         }
       } catch (err: any) {
-        console.warn(`Error with Gemini model ${combo.model} (${combo.version}):`, err.message);
-        lastError = err;
-        // Continue to next model
+        console.warn(`Error with Gemini model ${combo.model}:`, err.message);
+        // Continue to next model silently
       }
     }
     
-    // If all models failed, throw the last error
-    if (lastError) {
-      throw lastError;
-    }
-    
+    // If all models failed, return null gracefully (don't throw)
+    console.warn('All Gemini models failed, skipping this search result');
     return null;
   } catch (error) {
     console.error('Error extracting opportunity data:', error);
@@ -313,4 +311,5 @@ export async function getAllOpportunities(): Promise<Opportunity[]> {
     return [];
   }
 }
+
 
