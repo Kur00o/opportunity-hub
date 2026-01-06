@@ -9,8 +9,6 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { BookmarksProvider } from "./hooks/useBookmarks";
 import CalendarPage from "./pages/CalendarPage";
-import SubmitOpportunity from "./pages/SubmitOpportunity";
-import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -26,8 +24,6 @@ const App = () => (
             <Route path="/opportunities" element={<Opportunities />} />
             <Route path="/opportunity/:id" element={<OpportunityDetail />} />
             <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/submit" element={<SubmitOpportunity />} />
-            <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
